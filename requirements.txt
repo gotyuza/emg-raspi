@@ -1,0 +1,8 @@
+reservoirpy
+numpy
+scipy
+scikit-learn
+matplotlib
+pandas
+pyserial
+joblib
