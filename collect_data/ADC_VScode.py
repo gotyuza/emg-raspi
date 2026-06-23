@@ -26,8 +26,8 @@ FS        = 1000        # サンプリング周波数 (Hz) ここもArduinoと�
 DURATION  = 5            # 記録時間(秒)。0=無制限 0に設定するとCtrl+Cで止めるまで無制限に記録します
 FILE_NAME = "test"      #ファイルに名前を付ける 例 {FILE_NAME}_emg_20250604_153012.csv
 # ============================================================
-
-FRAME_SIZE  = EMG_CH * 2 + GRIP_CH * 2        # 12バイト（同期バイトの後）1chあたり16bit(2バイト)
+total_ch = EMG_CH + GRIP_CH
+FRAME_SIZE  =4+ EMG_CH * 2 + GRIP_CH * 2        # 12バイト（同期バイトの後）1chあたり16bit(2バイト)
 SYNC1, SYNC2 = 0xFF, 0xFE       #フレームの先頭を識別するための同期バイト。Arduino側から各フレームの前に2バイト送ってます
 
 
@@ -75,6 +75,7 @@ def main():
 
     sample_count = 0#取得したサンプル数
     dropped      = 0#欠損数 欠損が多いデータは使えないし、なんか問題がある
+    ts_offset    = None#Arudinoのmicro()はArudinoに電源が入った時から始まるので基準を決める用
     t0 = time.time()#記録開始時間
 
     try:#tryでエラーが起きたとしてもfinallyは実行されるのでポートを閉じることができる
@@ -100,15 +101,25 @@ def main():
                     dropped += 1
                     continue
 
+
+                # タイムスタンプ（上位4バイト, uint32, μs単位）を復元
+                ts_us = struct.unpack(">I", raw[0:4])[0]
+ 
+                # 最初のフレームを0秒基準にする
+                if ts_offset is None:
+                    ts_offset = ts_us
+                ts_s = round((ts_us - ts_offset) / 1_000_000, 6)#記録開始からの経過時間（秒） 小数点6桁表示
+
+
                 # ビッグエンディアン(先に上位バイトが並んでいる方式 Arduinoが先に上位バイトを送ってきます) "h"符号付き16bit 6ch に変換 12バイトが6つの整数に変換されます
-                total_ch = EMG_CH + GRIP_CH
-                values = struct.unpack(f">{total_ch}h", raw)
+                # 最初の４バイト以降
+                values = struct.unpack(f">{total_ch}h", raw[4:])
 
                 # 電圧に変換
                 voltages = [round((v * 5.0 / 1023.0 -2.5)*2, 6) for v in values]#小数点以下6桁 ov~5vの範囲を-5v~5vの範囲に変換
 
-                ts = round(elapsed, 6)#タイムスタンプを小数点以下6桁で記録
-                writer.writerow([ts] + list(values) + voltages)#タイムスタンプ、生値数ch、生値から変換した電圧値数chをCSVに書き込み
+                #ts = round(elapsed, 6)#タイムスタンプを小数点以下6桁で記録 time.time()が15msでしか更新されないことが分かったので使いません
+                writer.writerow([ts_s] + list(values) + voltages)#タイムスタンプ、生値数ch、生値から変換した電圧値数chをCSVに書き込み
 
                 sample_count += 1#サンプル数プラス１
 
