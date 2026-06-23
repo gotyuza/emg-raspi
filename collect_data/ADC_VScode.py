@@ -76,7 +76,7 @@ def main():
     sample_count = 0#取得したサンプル数
     dropped      = 0#欠損数 欠損が多いデータは使えないし、なんか問題がある
     ts_offset    = None#Arudinoのmicro()はArudinoに電源が入った時から始まるので基準を決める用
-    t0 = time.time()#記録開始時間
+    t0 = time.perf_counter()#記録開始時間
 
     try:#tryでエラーが起きたとしてもfinallyは実行されるのでポートを閉じることができる
         with open(filename, "w", newline="",encoding="utf-8") as csvfile: #"W"書き込みモード(ファイルが存在するなら上書きする)newline=""改行の自動化を無効にする。CSV.writerで改行されます。encoding="utf-8"文字コードは必要そうなら変える
@@ -85,7 +85,7 @@ def main():
 
             while True:#データを受信し続けるメインの無限ループ breakかCtrl+Cで抜けます
                 
-                elapsed = time.time() - t0# 現在時間から開始時間を引きます
+                elapsed = time.perf_counter() - t0# 現在時間から開始時間を引きます
                 if DURATION > 0 and elapsed >= DURATION:#設定時間を超えたら終了
                     print(f"\n設定時間 {DURATION}秒 経過。記録終了。")
                     break
@@ -136,7 +136,7 @@ def main():
 
     finally:
         ser.close()#シリアルポートを閉じます
-        elapsed = time.time() - t0#時間計算
+        elapsed = time.perf_counter() - t0#時間計算
         print(f"\n保存完了: {filename}")
         print(f"  総サンプル数 : {sample_count}")
         print(f"  記録時間     : {elapsed:.2f}秒")
