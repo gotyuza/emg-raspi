@@ -34,9 +34,19 @@ void loop() {
   if (!sampleReady) return;
   sampleReady = false;
 
+  // タイムスタンプ取得（マイクロ秒）
+  uint32_t ts_us = micros();
+
+
   // 同期バイト（フレーム先頭の識別用）
   Serial.write((uint8_t)0xFF);
   Serial.write((uint8_t)0xFE);
+
+  // タイムスタンプを4バイトで送信
+  Serial.write((uint8_t)(ts_us >> 24));
+  Serial.write((uint8_t)(ts_us >> 16));
+  Serial.write((uint8_t)(ts_us >> 8));
+  Serial.write((uint8_t)(ts_us));
 
   // A0〜A5 を順番にAD変換して送信（各ch 2バイト）
   for (int ch = 0; ch < NUM_CH; ch++) {
