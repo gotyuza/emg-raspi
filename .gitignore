@@ -216,3 +216,17 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# force_estimation: データ・キャッシュ・書き出し・実験結果（生成物）
+force_estimation/**/putemg_force/
+force_estimation/**/cache/
+force_estimation/**/export*/
+force_estimation/**/calib_*.csv
+force_estimation/**/calib_*.png
+force_estimation/**/importance_*.csv
+force_estimation/**/importance_*.png
+force_estimation/**/finger_eval.csv
+force_estimation/**/finger_map_[0-9]*.json
+force_estimation/**/*.npz
+force_estimation/**/*.onnx
+force_estimation/**/run_*_log.txt

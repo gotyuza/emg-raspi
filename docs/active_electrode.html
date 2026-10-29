@@ -1,0 +1,436 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>アクティブ電極の作り方</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: 1 本の縦長の作業手順書。図は横スクロール可能な枠に入れ、各節は「結論 → 図 → 補足」の順 */
+:root{
+  --bg:#f6f7f6;          /* 基板検査台のような淡いグレー */
+  --surface:#ffffff;
+  --fg:#1b2226;
+  --muted:#5b666d;
+  --line:#c9d0d3;
+  --silver:#a9b3ba;      /* 銀板 */
+  --silver-dark:#7d8990;
+  --mask:#1f6f6b;        /* ソルダーレジスト（アクセント） */
+  --mask-soft:#dcebea;
+  --copper:#b8733c;      /* 銅パターン */
+  --skin:#e9cdb6;
+  --epoxy:#e7d79a;
+  --warn:#9a3b1d;
+  --warn-bg:#fbeee7;
+  --font-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  --font-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121618; --surface:#1a2023; --fg:#e4e9eb; --muted:#9aa6ad; --line:#334047;
+    --silver:#8f9aa1; --silver-dark:#b9c3c9; --mask:#5fb3ad; --mask-soft:#1d3433;
+    --copper:#d79a63; --skin:#6b5446; --epoxy:#6e6440; --warn:#f0a07f; --warn-bg:#35211a;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121618; --surface:#1a2023; --fg:#e4e9eb; --muted:#9aa6ad; --line:#334047;
+  --silver:#8f9aa1; --silver-dark:#b9c3c9; --mask:#5fb3ad; --mask-soft:#1d3433;
+  --copper:#d79a63; --skin:#6b5446; --epoxy:#6e6440; --warn:#f0a07f; --warn-bg:#35211a;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.8}
+.wrap{max-width:860px;margin:0 auto;padding-block:40px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:48px}
+header{display:grid;gap:12px}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--mask);text-transform:uppercase}
+h1{font-size:clamp(28px,5vw,40px);line-height:1.3;margin:0;text-wrap:balance;font-weight:700}
+h2{font-size:22px;margin:0;text-wrap:balance;font-weight:700;display:flex;gap:12px;align-items:baseline}
+h2 .no{font-family:var(--font-mono);font-size:14px;color:var(--mask);font-weight:600}
+h3{font-size:17px;margin:0}
+p{margin:0;max-width:65ch}
+.lead{font-size:18px;color:var(--fg)}
+.sub{color:var(--muted)}
+section{display:grid;gap:16px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow-x:auto}
+.fig svg{display:block;min-width:620px;width:100%;height:auto}
+.fig.narrow svg{min-width:420px}
+.cap{font-size:13px;color:var(--muted)}
+svg text{font-family:var(--font-mono);fill:var(--fg)}
+svg .jp{font-family:var(--font-body)}
+svg .mut{fill:var(--muted)}
+svg .acc{fill:var(--mask)}
+svg .wire{stroke:var(--fg);stroke-width:2;fill:none}
+svg .wire-acc{stroke:var(--mask);stroke-width:2.2;fill:none}
+svg .cu{stroke:var(--copper);stroke-width:3;fill:none;stroke-linecap:round}
+svg .box{fill:var(--surface);stroke:var(--fg);stroke-width:2}
+svg .dot{fill:var(--fg)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:500;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+code,.mono{font-family:var(--font-mono);font-size:.92em}
+ol.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:14px}
+ol.steps>li{counter-increment:s;display:grid;grid-template-columns:2.2em 1fr;gap:12px;align-items:start}
+ol.steps>li::before{content:counter(s);font-family:var(--font-mono);font-weight:600;color:var(--mask);border:1.5px solid var(--mask);border-radius:50%;width:2em;height:2em;display:grid;place-items:center;font-size:14px;line-height:1}
+ol.steps>li>div{min-width:0;display:grid;gap:4px}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.check li{list-style:none;position:relative;padding-left:1.6em}
+.check li::before{content:"";position:absolute;left:0;top:.45em;width:.9em;height:.9em;border:1.5px solid var(--mask);border-radius:2px}
+.note{background:var(--mask-soft);border-radius:6px;padding:14px 16px;display:grid;gap:6px}
+.warn{background:var(--warn-bg);border-left:4px solid var(--warn);border-radius:4px;padding:16px 18px;display:grid;gap:8px}
+.warn h3{color:var(--warn)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.cols>div{min-width:0;display:grid;gap:8px;align-content:start}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:12px;padding:1px 8px;border-radius:999px;background:var(--mask-soft);color:var(--mask)}
+footer{font-size:13px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">義手班 / 筋電センサー / 試作手順</div>
+  <h1>アクティブ電極の作り方</h1>
+  <p class="lead">銀板の電極の真上に、オペアンプ OPA320 のバッファを載せます。皮膚の信号をその場で受け直してからケーブルに送るので、ケーブルで拾うノイズを減らせます。部品は OPA320、1kΩ 抵抗、0.1µF コンデンサで、電極1個あたり約10 mm 角の小さな基板にまとめます。</p>
+  <p class="sub">使う部品：OPA320（SOT-23・5ピン）、ROHM ESR18EZPD1001（1kΩ・1206・耐サージ）。PiEEG-16 の入力につなぐ前提です。</p>
+</header>
+
+<section>
+  <h2><span class="no">01</span>なぜ電極にバッファを付けるのか</h2>
+  <p>皮膚と電極の間はインピーダンスが高く（数十kΩ〜数MΩ）、そのままケーブルを引き回すと、ケーブルの揺れや周りの電気のノイズを拾いやすくなります。電極のすぐ上で電圧フォロワ（増幅率1倍）を通すと、ケーブルを低いインピーダンスで駆動できるため、ノイズが入りにくくなります。</p>
+  <div class="fig">
+    <svg viewBox="0 0 720 230" role="img" aria-label="パッシブ電極とアクティブ電極の比較">
+      <text x="20" y="30" class="jp" font-size="15" font-weight="700">今まで（パッシブ電極）</text>
+      <rect x="20" y="50" width="70" height="40" rx="4" fill="var(--silver)"/>
+      <text x="55" y="75" text-anchor="middle" font-size="12">電極</text>
+      <path d="M90 70 C 160 40, 200 100, 270 70 S 380 40, 450 70" class="wire"/>
+      <text x="270" y="105" text-anchor="middle" class="jp mut" font-size="13">長いケーブル（高インピーダンスのまま）→ ノイズを拾いやすい</text>
+      <rect x="450" y="50" width="110" height="40" rx="4" class="box"/>
+      <text x="505" y="75" text-anchor="middle" font-size="12">PiEEG</text>
+
+      <text x="20" y="150" class="jp" font-size="15" font-weight="700">これから（アクティブ電極）</text>
+      <rect x="20" y="170" width="70" height="40" rx="4" fill="var(--silver)"/>
+      <text x="55" y="195" text-anchor="middle" font-size="12">電極</text>
+      <path d="M90 190 L 110 190" class="wire"/>
+      <polygon points="110,170 110,210 150,190" fill="var(--mask-soft)" stroke="var(--mask)" stroke-width="2"/>
+      <text x="125" y="194" font-size="10" class="acc">×1</text>
+      <path d="M150 190 C 220 160, 260 220, 330 190 S 400 160, 450 190" class="wire-acc"/>
+      <text x="300" y="225" text-anchor="middle" class="jp mut" font-size="13">バッファの出力（低インピーダンス）→ ノイズが入りにくい</text>
+      <rect x="450" y="170" width="110" height="40" rx="4" class="box"/>
+      <text x="505" y="195" text-anchor="middle" font-size="12">PiEEG</text>
+      <text x="580" y="186" class="jp acc" font-size="13">OPA320 を</text>
+      <text x="580" y="204" class="jp acc" font-size="13">電極の真上に</text>
+    </svg>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">02</span>回路（電極1個分）</h2>
+  <p>OPA320 の 1番（OUT）と 4番（−IN）をつなぐと、増幅率1倍のバッファになります。電極は 1kΩ を通して 3番（+IN）へ入れます。</p>
+  <div class="fig">
+    <svg viewBox="0 0 760 330" role="img" aria-label="OPA320 を使った電圧フォロワの回路図">
+      <!-- electrode -->
+      <rect x="20" y="150" width="60" height="16" fill="var(--silver)" stroke="var(--silver-dark)"/>
+      <rect x="20" y="166" width="60" height="10" fill="var(--skin)"/>
+      <text x="50" y="200" text-anchor="middle" class="jp" font-size="13">銀板</text>
+      <text x="50" y="217" text-anchor="middle" class="jp mut" font-size="12">（皮膚に接触）</text>
+      <path d="M50 150 L50 120 L110 120" class="wire"/>
+      <!-- R1 -->
+      <rect x="110" y="110" width="70" height="20" fill="none" stroke="var(--fg)" stroke-width="2"/>
+      <text x="145" y="102" text-anchor="middle" font-size="13" font-weight="600">R1 1kΩ</text>
+      <text x="145" y="150" text-anchor="middle" class="jp mut" font-size="12">入力保護</text>
+      <path d="M180 120 L280 120" class="wire"/>
+      <!-- op amp -->
+      <polygon points="280,90 280,230 400,160" class="box"/>
+      <text x="292" y="125" font-size="16" font-weight="600">+</text>
+      <text x="292" y="205" font-size="16" font-weight="600">−</text>
+      <text x="318" y="165" font-size="13" font-weight="600">OPA320</text>
+      <text x="252" y="114" font-size="12" class="acc">3</text>
+      <text x="252" y="196" font-size="12" class="acc">4</text>
+      <text x="404" y="150" font-size="12" class="acc">1</text>
+      <text x="334" y="96" font-size="12" class="acc">5</text>
+      <text x="334" y="244" font-size="12" class="acc">2</text>
+      <path d="M260 200 L280 200" class="wire"/>
+      <!-- feedback -->
+      <path d="M400 160 L470 160 L470 280 L250 280 L250 200 L260 200" class="wire-acc"/>
+      <circle cx="470" cy="160" r="4" class="dot"/>
+      <text x="360" y="300" text-anchor="middle" class="jp acc" font-size="13">1番（OUT）と 4番（−IN）を直結 → 電圧フォロワ</text>
+      <!-- supply -->
+      <path d="M340 105 L340 50" class="wire"/>
+      <text x="350" y="46" font-size="13" font-weight="600">V+</text>
+      <path d="M340 215 L340 255" class="wire"/>
+      <text x="350" y="262" font-size="13" font-weight="600">V−</text>
+      <!-- decoupling cap -->
+      <path d="M340 60 L560 60 L560 72" class="wire"/>
+      <path d="M545 72 L575 72 M545 80 L575 80" stroke="var(--fg)" stroke-width="2.5"/>
+      <path d="M560 80 L560 92" class="wire"/>
+      <text x="585" y="81" font-size="13" font-weight="600">C1 0.1µF</text>
+      <text x="585" y="99" class="jp mut" font-size="12">V+ と V− の間、IC のすぐそば</text>
+      <text x="560" y="110" text-anchor="middle" font-size="12" class="mut">→ V−</text>
+      <!-- R2 output -->
+      <path d="M470 160 L520 160" class="wire"/>
+      <rect x="520" y="150" width="70" height="20" fill="none" stroke="var(--fg)" stroke-width="2"/>
+      <text x="555" y="142" text-anchor="middle" font-size="13" font-weight="600">R2</text>
+      <text x="555" y="190" text-anchor="middle" class="jp mut" font-size="12">発振止め（100Ω〜1kΩ）</text>
+      <path d="M590 160 L680 160" class="wire"/>
+      <polygon points="680,152 696,160 680,168" fill="var(--fg)"/>
+      <text x="700" y="150" class="jp" font-size="13">ケーブル</text>
+      <text x="700" y="168" class="jp" font-size="13">→ PiEEG</text>
+    </svg>
+  </div>
+  <div class="note">
+    <b>なぜ抵抗を +IN 側（皮膚と IC の間）に付けるのか</b>
+    <p>R1 の目的は、皮膚と IC の間に流れる電流を制限することです。静電気や異常な電圧が電極に来たとき、電流は皮膚 → +IN → IC の中の保護ダイオード → 電源、と流れます。抵抗が出力側にあると、この経路には何もないので、IC も体も守れません。逆に IC が壊れて +IN が電源につながってしまったときも、R1 があれば体に流れる電流を制限できます。</p>
+    <p>OPA320 の入力にはほとんど電流が流れない（入力バイアス電流はピコアンペア級）ので、1kΩ を入れても信号は弱まりません。1kΩ が出す雑音（約 4 nV/√Hz）も、筋電の大きさ（数十µV〜数mV）に比べて無視できます。R2（出力側）は、ケーブルによる発振を防ぐための別の目的の抵抗で、R1 の代わりにはなりません。</p>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>ピン配置（SOT-23、上から見た図）</h3>
+      <div class="fig narrow">
+        <svg viewBox="0 0 420 200" role="img" aria-label="OPA320 のピン配置">
+          <rect x="150" y="30" width="120" height="140" rx="4" class="box"/>
+          <circle cx="166" cy="46" r="5" fill="none" stroke="var(--fg)" stroke-width="1.5"/>
+          <g font-size="13">
+            <rect x="120" y="50" width="30" height="24" class="box"/><text x="135" y="67" text-anchor="middle">1</text><text x="110" y="67" text-anchor="end">OUT</text>
+            <rect x="120" y="88" width="30" height="24" class="box"/><text x="135" y="105" text-anchor="middle">2</text><text x="110" y="105" text-anchor="end">V−</text>
+            <rect x="120" y="126" width="30" height="24" class="box"/><text x="135" y="143" text-anchor="middle">3</text><text x="110" y="143" text-anchor="end">+IN</text>
+            <rect x="270" y="50" width="30" height="24" class="box"/><text x="285" y="67" text-anchor="middle">5</text><text x="310" y="67">V+</text>
+            <rect x="270" y="126" width="30" height="24" class="box"/><text x="285" y="143" text-anchor="middle">4</text><text x="310" y="143">−IN</text>
+          </g>
+          <text x="210" y="190" text-anchor="middle" class="jp mut" font-size="12">● の印が 1番。OUT(1) と −IN(4) は対角</text>
+        </svg>
+      </div>
+    </div>
+    <div>
+      <h3>部品の役割</h3>
+      <ul class="plain">
+        <li><b>R1（1kΩ）</b>：静電気や故障時に、体と IC の間に流れる電流を制限します。耐サージ品の ESR18 はこの用途に合っています。</li>
+        <li><b>C1（0.1µF）</b>：電源のノイズ対策で必須です。今の部品リストにないので追加してください。</li>
+        <li><b>R2</b>：長いケーブルは容量になり、バッファが発振することがあります。値はデータシートの容量性負荷の項目で確認します。迷ったら 1kΩ をもう1つ使います。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">03</span>構造：銀板の上にどう載せるか</h2>
+  <p><b>部品を銀板の上に直接置くと、ピンどうしが銀板を通してショートします。</b>銀板と部品の間に小さな基板（絶縁）を挟み、銀板は基板の裏側のパッドにはんだ付けして R1 につなぎます。</p>
+  <div class="fig">
+    <svg viewBox="0 0 720 300" role="img" aria-label="アクティブ電極の断面図">
+      <!-- epoxy -->
+      <path d="M190 120 Q190 60 260 56 L460 56 Q530 60 530 120 Z" fill="var(--epoxy)" opacity=".85"/>
+      <!-- components -->
+      <rect x="250" y="96" width="60" height="24" rx="2" fill="var(--fg)"/>
+      <text x="280" y="88" text-anchor="middle" font-size="12">OPA320</text>
+      <rect x="340" y="104" width="52" height="16" rx="1" fill="var(--silver-dark)"/>
+      <rect x="342" y="104" width="10" height="16" fill="var(--silver)"/><rect x="380" y="104" width="10" height="16" fill="var(--silver)"/>
+      <text x="366" y="98" text-anchor="middle" font-size="12">R1</text>
+      <rect x="415" y="108" width="22" height="12" rx="1" fill="var(--copper)"/>
+      <text x="426" y="100" text-anchor="middle" font-size="12">C1</text>
+      <!-- pcb -->
+      <rect x="200" y="120" width="320" height="16" fill="var(--mask)"/>
+      <rect x="230" y="136" width="260" height="4" fill="var(--copper)"/>
+      <!-- via -->
+      <rect x="452" y="120" width="6" height="20" fill="var(--copper)"/>
+      <!-- solder -->
+      <rect x="235" y="140" width="250" height="6" fill="var(--silver-dark)"/>
+      <!-- silver plate -->
+      <rect x="225" y="146" width="270" height="12" fill="var(--silver)" stroke="var(--silver-dark)"/>
+      <rect x="225" y="158" width="270" height="4" fill="var(--silver-dark)" opacity=".7"/>
+      <!-- skin -->
+      <path d="M60 162 L660 162 L660 200 Q360 215 60 200 Z" fill="var(--skin)"/>
+      <!-- wires -->
+      <path d="M520 112 C 570 112, 590 90, 640 90" class="wire"/>
+      <path d="M520 104 C 570 104, 590 70, 640 70" class="wire"/>
+      <path d="M520 96 C 570 96, 590 50, 640 50" class="wire-acc"/>
+      <text x="646" y="54" font-size="12" class="acc">OUT</text>
+      <text x="646" y="74" font-size="12">V+</text>
+      <text x="646" y="94" font-size="12">V−</text>
+      <!-- labels -->
+      <g class="jp" font-size="13">
+        <path d="M195 80 L120 60" stroke="var(--muted)" stroke-width="1"/><text x="20" y="56">エポキシ等で封止</text>
+        <path d="M200 128 L120 118" stroke="var(--muted)" stroke-width="1"/><text x="20" y="114">基板（約10×10mm）</text>
+        <path d="M228 143 L120 150" stroke="var(--muted)" stroke-width="1"/><text x="20" y="146">裏面パッド＋はんだ</text>
+        <path d="M226 160 L120 180" stroke="var(--muted)" stroke-width="1"/><text x="20" y="176">銀板 → 表面を塩化銀に</text>
+        <text x="360" y="232" text-anchor="middle" class="mut">皮膚（直径 約10mm の銀板が接触）</text>
+        <path d="M455 128 L540 250" stroke="var(--muted)" stroke-width="1"/><text x="545" y="262">ビア：銀板 → R1</text>
+      </g>
+    </svg>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>基板を作る場合（おすすめ）</h3>
+      <ul class="plain">
+        <li>両面基板、約10×10 mm。上面に部品、裏面全体を銀板用のパッドにします。</li>
+        <li>裏面パッドはビアで R1 の片側につなぎます。</li>
+        <li>出力・電源の3本の線は、基板の端のパッドから出します。</li>
+      </ul>
+    </div>
+    <div>
+      <h3>基板なしで作る場合（試作1個目向け）</h3>
+      <ul class="plain">
+        <li>銀板の上にカプトンテープを2〜3重に貼り、その上に部品を接着します。</li>
+        <li>細い線（UEW 線など）で空中配線し、銀板は端に1か所だけはんだ付けします。</li>
+        <li>ショートと断線が起きやすいので、動作確認用にとどめます。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">04</span>基板の配置（上から見た例）</h2>
+  <p>部品は3〜4個なので、10 mm 角に収まります。1206 の抵抗は 3.2×1.6 mm、SOT-23 は 約2.9×2.8 mm です。</p>
+  <div class="fig narrow">
+    <svg viewBox="0 0 520 330" role="img" aria-label="10mm角基板の部品配置例">
+      <rect x="110" y="30" width="270" height="270" rx="10" fill="var(--mask)"/>
+      <!-- traces -->
+      <path d="M190 120 L190 210" class="cu"/><!-- R1 to +IN -->
+      <path d="M260 92 L330 92 L330 70" class="cu"/>
+      <path d="M260 140 L300 140 L300 230" class="cu"/>
+      <!-- OPA320 -->
+      <rect x="160" y="80" width="100" height="80" rx="3" fill="var(--fg)"/>
+      <text x="210" y="125" text-anchor="middle" font-size="13" fill="var(--bg)" style="fill:var(--bg)">OPA320</text>
+      <g fill="var(--silver)">
+        <rect x="140" y="86" width="20" height="12"/><rect x="140" y="114" width="20" height="12"/><rect x="140" y="142" width="20" height="12"/>
+        <rect x="260" y="86" width="20" height="12"/><rect x="260" y="142" width="20" height="12"/>
+      </g>
+      <g font-size="11">
+        <text x="134" y="96" text-anchor="end">1 OUT</text><text x="134" y="124" text-anchor="end">2 V−</text><text x="134" y="152" text-anchor="end">3 +IN</text>
+        <text x="286" y="96">5 V+</text><text x="286" y="152">4 −IN</text>
+      </g>
+      <!-- R1 vertical -->
+      <rect x="170" y="200" width="40" height="70" rx="2" fill="var(--silver-dark)"/>
+      <text x="190" y="240" text-anchor="middle" font-size="12" style="fill:var(--bg)">R1</text>
+      <!-- via -->
+      <circle cx="190" cy="282" r="7" fill="var(--copper)"/><circle cx="190" cy="282" r="3" fill="var(--mask)"/>
+      <text x="205" y="296" font-size="11" class="jp" style="fill:var(--bg)">ビア → 裏面の銀板</text>
+      <!-- C1 -->
+      <rect x="315" y="44" width="30" height="20" rx="2" fill="var(--copper)"/>
+      <text x="330" y="40" text-anchor="middle" font-size="11" style="fill:var(--bg)">C1</text>
+      <!-- R2 -->
+      <rect x="250" y="200" width="40" height="70" rx="2" fill="var(--silver-dark)"/>
+      <text x="270" y="240" text-anchor="middle" font-size="12" style="fill:var(--bg)">R2</text>
+      <!-- pads -->
+      <g fill="var(--silver)">
+        <rect x="330" y="180" width="40" height="22" rx="3"/><rect x="330" y="215" width="40" height="22" rx="3"/><rect x="330" y="250" width="40" height="22" rx="3"/>
+      </g>
+      <g font-size="12">
+        <text x="386" y="196">OUT</text><text x="386" y="231">V+</text><text x="386" y="266">V−</text>
+      </g>
+      <text x="245" y="320" text-anchor="middle" class="jp mut" font-size="12">約10mm × 10mm（図は拡大）。配線は一例で、実際の引き回しは KiCad で決める</text>
+    </svg>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">05</span>バンド全体の配線</h2>
+  <p>電極1個から出る線は OUT・V+・V− の3本です。1本のバンドの8個は V+ と V− を共通の線にでき、OUT だけがそれぞれ PiEEG の入力チャンネルに行きます。肘側と手首側の2本で16チャンネルです。</p>
+  <div class="fig">
+    <svg viewBox="0 0 760 290" role="img" aria-label="1本のバンドの配線図">
+      <path d="M40 50 L700 50" stroke="var(--copper)" stroke-width="3"/>
+      <text x="706" y="54" font-size="13" font-weight="600">V+</text>
+      <path d="M40 80 L700 80" stroke="var(--muted)" stroke-width="3"/>
+      <text x="706" y="84" font-size="13" font-weight="600">V−</text>
+      <g>
+        <g transform="translate(60,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="var(--silver)"/><text x="22" y="137" text-anchor="middle" font-size="12">1</text><path d="M14 110 L14 50 M30 110 L30 80" stroke="var(--fg)" stroke-width="1.5"/><path d="M22 154 L22 230" class="wire-acc"/></g>
+        <g transform="translate(140,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="var(--silver)"/><text x="22" y="137" text-anchor="middle" font-size="12">2</text><path d="M14 110 L14 50 M30 110 L30 80" stroke="var(--fg)" stroke-width="1.5"/><path d="M22 154 L22 230" class="wire-acc"/></g>
+        <g transform="translate(220,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="var(--silver)"/><text x="22" y="137" text-anchor="middle" font-size="12">3</text><path d="M14 110 L14 50 M30 110 L30 80" stroke="var(--fg)" stroke-width="1.5"/><path d="M22 154 L22 230" class="wire-acc"/></g>
+        <text x="330" y="137" text-anchor="middle" font-size="18" class="mut">…</text>
+        <g transform="translate(380,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="var(--silver)"/><text x="22" y="137" text-anchor="middle" font-size="12">8</text><path d="M14 110 L14 50 M30 110 L30 80" stroke="var(--fg)" stroke-width="1.5"/><path d="M22 154 L22 230" class="wire-acc"/></g>
+        <g transform="translate(500,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="var(--silver)" stroke="var(--mask)" stroke-width="2"/><text x="22" y="137" text-anchor="middle" font-size="11">参照</text><path d="M14 110 L14 50 M30 110 L30 80" stroke="var(--fg)" stroke-width="1.5"/><path d="M22 154 L22 230" class="wire-acc"/></g>
+        <g transform="translate(600,0)"><rect x="0" y="110" width="44" height="44" rx="4" fill="none" stroke="var(--silver-dark)" stroke-width="2" stroke-dasharray="4 3"/><text x="22" y="137" text-anchor="middle" font-size="11">BIAS</text><path d="M22 154 L22 230" stroke="var(--fg)" stroke-width="2"/></g>
+      </g>
+      <rect x="40" y="230" width="660" height="40" rx="4" class="box"/>
+      <text x="370" y="255" text-anchor="middle" class="jp" font-size="14">PiEEG-16：各 OUT → 入力チャンネル、参照 → SRB、BIAS → BIAS 出力</text>
+      <text x="622" y="100" text-anchor="middle" class="jp mut" font-size="11">バッファなし</text>
+    </svg>
+  </div>
+  <ul class="plain">
+    <li><b>参照電極（SRB）</b>：各チャンネルはこの電極との差を測ります。同じバッファ付きにすると、全チャンネルと条件がそろいます。</li>
+    <li><b>BIAS 電極</b>：体の電位を PiEEG の基準に合わせる電極です。バッファは付けず、銀板を PiEEG の BIAS 出力に直接つなぎます。骨の上など、筋肉の少ない場所に貼ります。</li>
+    <li>バンドの中で V+・V− を共通にすると、電極からの線は「共通2本＋OUT 8本」になります。</li>
+  </ul>
+</section>
+
+<section>
+  <h2><span class="no">06</span>部品リスト（16チャンネル＋参照）</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>部品</th><th>型番・仕様</th><th>1個あたり</th><th>17個分</th><th>状態</th></tr></thead>
+      <tbody>
+        <tr><td>オペアンプ</td><td>OPA320（SOT-23・5ピン、DBV）</td><td class="num">1</td><td class="num">17</td><td><span class="tag">手元にあり</span></td></tr>
+        <tr><td>R1 入力保護</td><td>ROHM ESR18EZPD1001（1kΩ・1206・耐サージ）</td><td class="num">1</td><td class="num">17</td><td><span class="tag">手元にあり</span></td></tr>
+        <tr><td>R2 出力（発振止め）</td><td>100Ω〜1kΩ（1kΩ なら ESR18 で兼用可）</td><td class="num">1</td><td class="num">17</td><td>値を確認</td></tr>
+        <tr><td>C1 パスコン</td><td>0.1µF セラミック（0603 か 0805）</td><td class="num">1</td><td class="num">17</td><td>追加が必要</td></tr>
+        <tr><td>銀板</td><td>直径 約10mm（BIAS 用にもう1枚）</td><td class="num">1</td><td class="num">18</td><td>—</td></tr>
+        <tr><td>基板</td><td>両面・約10×10mm</td><td class="num">1</td><td class="num">17</td><td>設計が必要</td></tr>
+        <tr><td>封止材</td><td>エポキシ接着剤 など</td><td class="num">少量</td><td class="num">—</td><td>—</td></tr>
+        <tr><td>ケーブル</td><td>細いシールド線か多芯線</td><td class="num">3本</td><td class="num">—</td><td>—</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="cap">失敗に備えて、各部品は2〜3個多めに用意しておくと安心です。</p>
+</section>
+
+<section>
+  <h2><span class="no">07</span>作る手順</h2>
+  <ol class="steps">
+    <li><div><b>PiEEG 側を確認する</b><span class="sub">回路図で、ADS1299 のアナログ電源（AVDD・AVSS）の電圧、BIAS の電圧、入力・SRB・BIAS の端子を確認します。OPA320 はこの AVDD・AVSS と同じ電源で動かすのが安全です（OPA320 の電源範囲は 1.8〜5.5 V）。</span></div></li>
+    <li><div><b>回路図と基板を作る</b><span class="sub">KiCad などで電極1個分を設計します。部品を配置したら、OUT（1番）と −IN（4番）がつながっているか、C1 が IC のすぐ横にあるかを確認します。</span></div></li>
+    <li><div><b>まず1個だけ組み立てる</b><span class="sub">部品をはんだ付けし、裏面に銀板をはんだ付けします。まだ封止しません。</span></div></li>
+    <li><div><b>机の上で動作を確かめる（体には付けない）</b><span class="sub">電源を入れて、OUT の電圧が +IN と同じになるか、OUT が発振していないかをオシロスコープで見ます。信号発生器の小さな正弦波（例：100 Hz）を入れて、同じ波が出てくるかも確認します。</span></div></li>
+    <li><div><b>銀板を塩化銀にする</b><span class="sub">食塩水での電気分解か、塩素系漂白剤に漬ける方法で、皮膚に触れる面を塩化銀にします。はんだ付けの後に行います（塩化銀の面ははんだが付きにくいため）。</span></div></li>
+    <li><div><b>封止する</b><span class="sub">部品とはんだの部分をエポキシなどで覆い、汗が入らないようにします。皮膚に出るのは銀板の面だけにします。</span></div></li>
+    <li><div><b>2〜3個で腕に付けて比べる</b><span class="sub">今のパッシブ電極と並べて筋電を記録し、ノイズの大きさを比べます。このときの電源の条件は、下の安全の項目を守ります。</span></div></li>
+    <li><div><b>残りを作る</b><span class="sub">問題がなければ、16個＋参照1個を作り、2本のバンドに取り付けます。</span></div></li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="no">08</span>確認すること</h2>
+  <div class="cols">
+    <div>
+      <h3>机の上で</h3>
+      <ul class="plain check">
+        <li>電源を入れても IC が熱くならない</li>
+        <li>OUT の電圧が +IN と同じ（数 mV 以内）</li>
+        <li>OUT に高い周波数の発振が出ていない（ケーブルをつないだ状態で）</li>
+        <li>入力した正弦波が同じ大きさで出てくる</li>
+      </ul>
+    </div>
+    <div>
+      <h3>腕に付けて</h3>
+      <ul class="plain check">
+        <li>力を抜いたときのノイズが、パッシブ電極より小さい</li>
+        <li>指に力を入れると、その電極の筋電が大きくなる</li>
+        <li>ケーブルを揺らしても波形が大きく乱れない</li>
+        <li>PiEEG の入力が振り切れていない（振り切れたらゲインを下げる、例：4〜8）</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">
+    <b>ゲインについて</b>
+    <p>バッファは直流もそのまま通します。電極ごとに直流の電位が違うと、ADS1299 のゲインが高い設定では入力が振り切れることがあります。最初はゲインを低めにして始めます。</p>
+  </div>
+</section>
+
+<section class="warn" aria-label="安全上の注意">
+  <h3>安全：電極を体に付けるときは必ず守る</h3>
+  <p>PiEEG・ラズパイ・ノートPC・モニターなど、<b>電極とつながっている機器はすべてバッテリーで動かし、コンセントから完全に切り離します</b>。ノートPCも充電器を抜きます。R1 の 1kΩ は補助的な保護で、安全の基本はこの電源の分離です。体に付ける回路は、使う前に教授や担当の先生にも確認してもらいます。</p>
+</section>
+
+<section>
+  <h2><span class="no">09</span>まだ決まっていないこと</h2>
+  <ul class="plain">
+    <li>PiEEG-16 の AVDD・AVSS と BIAS の電圧（OPA320 の電源をどこから取るか）</li>
+    <li>R2 の値（ケーブルの長さと OPA320 のデータシートで決める）</li>
+    <li>銀板の大きさと形、基板を発注するか手作りするか</li>
+    <li>ケーブルの種類（シールド線にするか）と、バンドへの固定方法</li>
+  </ul>
+</section>
+
+<footer>義手班 ソフトウェア担当 作成。OPA320 のピン配置は TI のデータシート（DBV パッケージ）による。電圧や部品の値は、PiEEG の回路図と各データシートで確認すること。</footer>
+
+</div>

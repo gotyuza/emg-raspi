@@ -1,0 +1,16 @@
+{
+ "subject": "all",
+ "source": "putEMG-Force の装置図（段ごとに1本の指）",
+ "sensor_to_finger": {
+  "1": "thumb",
+  "2": "thumb",
+  "3": "index",
+  "4": "index",
+  "5": "middle",
+  "6": "middle",
+  "7": "ring",
+  "8": "ring",
+  "9": "little",
+  "10": "little"
+ }
+}
